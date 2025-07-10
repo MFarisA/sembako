@@ -103,25 +103,42 @@ class KantorResource extends Resource
                     }),
                 Action::make('import')
                     ->label('Import from Excel/CSV')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('primary')
                     ->form([
                         FileUpload::make('attachment')
                             ->required()
                             ->label('CSV/Excel File')
+                            ->acceptedFileTypes(['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+                            ->maxSize(10240) // 10MB max
+                            ->helperText('Supported formats: CSV, XLS, XLSX. Max size: 10MB.')
                             ->storeFiles(false)
                     ])
                     ->action(function (array $data) {
                         $file = $data['attachment'];
                         try {
                             Excel::import(new KantorDataImport, $file);
+                            
+                            // Get import statistics
+                            $kantorCount = Kantor::count();
+                            $sufixCount = \App\Models\Sufix::count();
+                            $subSufixCount = \App\Models\SubSufix::count();
+                            $totalCount = \App\Models\Total::count();
+                            
                             Notification::make()
                                 ->title('Import Successful')
+                                ->body("Imported: {$kantorCount} Kantors, {$sufixCount} Sufixes, {$subSufixCount} SubSufixes, {$totalCount} Totals")
                                 ->success()
+                                ->duration(5000)
                                 ->send();
                         } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Import error: ' . $e->getMessage());
+                            
                             Notification::make()
                                 ->title('Import Failed')
-                                ->body($e->getMessage())
+                                ->body('Error: ' . $e->getMessage())
                                 ->danger()
+                                ->duration(8000)
                                 ->send();
                         }
                     })

@@ -9,13 +9,14 @@ use App\Models\Total;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Illuminate\Support\Facades\Log;
 
-class KantorDataImport implements ToCollection, WithHeadingRow
+class KantorDataImport implements ToCollection, WithHeadingRow, WithBatchInserts
 {
     public function collection(Collection $rows)
     {
-        foreach ($rows as $row) {
+        foreach ($rows as $rowIndex => $row) {
             try {
                 // Find or create Kantor
                 $kantor = Kantor::updateOrCreate(
@@ -37,37 +38,26 @@ class KantorDataImport implements ToCollection, WithHeadingRow
 
                     // Create SubSufix if sub data is provided
                     if ($this->hasSubSufixData($row)) {
-                        SubSufix::updateOrCreate(
-                            ['sufix_id' => $sufix->id],
-                            [
-                                'alokasi' => $row['alokasi'] ?? 0,
-                                'alokasi_biaya' => $row['alokasi_biaya'] ?? 0,
-                                'realisasi' => $row['realisasi'] ?? 0,
-                                'realisasi_biaya' => $row['realisasi_biaya'] ?? 0,
-                                'gagal_bayar_tolak' => $row['gagal_bayar_tolak'] ?? 0,
-                                'sisa_aktif' => $row['sisa_aktif'] ?? 0,
-                                'sisa_biaya' => $row['sisa_biaya'] ?? 0,
-                            ]
-                        );
-                    }
+                        // Create new SubSufix for each row with data
+                        // This allows multiple SubSufix records per Sufix
+                        SubSufix::create([
+                            'sufix_id' => $sufix->id,
+                            'alokasi' => $row['alokasi'] ?? 0,
+                            'alokasi_biaya' => $row['alokasi_biaya'] ?? 0,
+                            'realisasi' => $row['realisasi'] ?? 0,
+                            'realisasi_biaya' => $row['realisasi_biaya'] ?? 0,
+                            'gagal_bayar_tolak' => $row['gagal_bayar_tolak'] ?? 0,
+                            'sisa_aktif' => $row['sisa_aktif'] ?? 0,
+                            'sisa_biaya' => $row['sisa_biaya'] ?? 0,
+                        ]);
 
-                    // Create or update Total if total data is provided
-                    if ($this->hasTotalData($row)) {
-                        Total::updateOrCreate(
-                            ['sufix_id' => $sufix->id],
-                            [
-                                'jumlah_alokasi_bnba' => $row['jumlah_alokasi_bnba'] ?? 0,
-                                'jumlah_alokasi_biaya' => $row['jumlah_alokasi_biaya'] ?? 0,
-                                'jumlah_realisasi' => $row['jumlah_realisasi'] ?? 0,
-                                'jumlah_realisasi_biaya' => $row['jumlah_realisasi_biaya'] ?? 0,
-                                'persentase' => $row['persentase'] ?? 0,
-                            ]
-                        );
+                        // Regenerate total for this Sufix after adding SubSufix
+                        $sufix->generateTotal();
                     }
                 }
             } catch (\Exception $e) {
-                // Log the error for debugging
-                Log::error('Import failed for row: ' . json_encode($row) . ' Error: ' . $e->getMessage());
+                // Log the error for debugging with row number
+                Log::error('Import failed for row ' . ($rowIndex + 1) . ': ' . json_encode($row) . ' Error: ' . $e->getMessage());
             }
         }
     }
@@ -85,10 +75,32 @@ class KantorDataImport implements ToCollection, WithHeadingRow
 
     private function hasTotalData($row): bool
     {
+        // Method ini tidak lagi digunakan untuk impor langsung Total,
+        // tetapi tetap dipertahankan jika ada kebutuhan lain di masa depan.
         return isset($row['jumlah_alokasi_bnba']) ||
                isset($row['jumlah_alokasi_biaya']) ||
                isset($row['jumlah_realisasi']) ||
                isset($row['jumlah_realisasi_biaya']) ||
                isset($row['persentase']);
+    }
+
+    /**
+     * Clear existing data before import (optional - call this if you want fresh import)
+     */
+    public static function clearExistingData()
+    {
+        // Delete in proper order due to foreign key constraints
+        \App\Models\Total::truncate();
+        \App\Models\SubSufix::truncate();
+        \App\Models\Sufix::truncate();
+        \App\Models\Kantor::truncate();
+    }
+
+    /**
+     * Batch process import with better memory management
+     */
+    public function batchSize(): int
+    {
+        return 100; // Process 100 rows at a time
     }
 }
