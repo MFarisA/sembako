@@ -24,48 +24,71 @@ class Total extends Model
 
     public static function generatePositionalTotals()
     {
-        self::whereNull('sufix_id')->delete();
+        // Delete existing positional totals (we'll identify them by regenerating)
+        self::whereNotNull('sufix_id')->delete();
         
-        $sufixes = \App\Models\Sufix::with('subSufixes')->get();
-        
-        $maxSubSufixes = $sufixes->max(function ($sufix) {
-            return $sufix->subSufixes->count();
-        });
+        // Get all Kantors with their Sufixes and SubSufixes
+        $kantors = \App\Models\Kantor::with('sufixes.subSufixes')->get();
         
         $totalsCreated = [];
         
-        for ($position = 0; $position < $maxSubSufixes; $position++) {
-            $totalData = [
-                'jumlah_alokasi_bnba' => 0,
-                'jumlah_alokasi_biaya' => 0,
-                'jumlah_realisasi' => 0,
-                'jumlah_realisasi_biaya' => 0,
-                'sufix_id' => null, 
-            ];
+        // Process each Kantor separately
+        foreach ($kantors as $kantor) {
+            $sufixes = $kantor->sufixes;
             
-            $hasData = false;
-            
-            foreach ($sufixes as $sufix) {
-                $subSufixAtPosition = $sufix->subSufixes->skip($position)->first();
-                
-                if ($subSufixAtPosition) {
-                    $totalData['jumlah_alokasi_bnba'] += $subSufixAtPosition->alokasi ?? 0;
-                    $totalData['jumlah_alokasi_biaya'] += $subSufixAtPosition->alokasi_biaya ?? 0;
-                    $totalData['jumlah_realisasi'] += $subSufixAtPosition->realisasi ?? 0;
-                    $totalData['jumlah_realisasi_biaya'] += $subSufixAtPosition->realisasi_biaya ?? 0;
-                    $hasData = true;
-                }
+            if ($sufixes->isEmpty()) {
+                continue; // Skip Kantor with no Sufixes
             }
             
-            if ($hasData) {
-                $totalData['persentase'] = $totalData['jumlah_alokasi_bnba'] > 0 ? 
-                    ($totalData['jumlah_realisasi'] / $totalData['jumlah_alokasi_bnba']) * 100 : 0;
-                
-                $total = self::create($totalData);
-                $totalsCreated[] = [
-                    'position' => $position + 1,
-                    'total' => $total
+            $maxSubSufixes = $sufixes->max(function ($sufix) {
+                return $sufix->subSufixes->count();
+            });
+            
+            // Generate positional totals for this specific Kantor
+            for ($position = 0; $position < $maxSubSufixes; $position++) {
+                $totalData = [
+                    'jumlah_alokasi_bnba' => 0,
+                    'jumlah_alokasi_biaya' => 0,
+                    'jumlah_realisasi' => 0,
+                    'jumlah_realisasi_biaya' => 0,
                 ];
+                
+                // Get the Sufix at this position within this Kantor to link the total to
+                $sufixAtPosition = $sufixes->skip($position)->first();
+                if (!$sufixAtPosition) {
+                    continue; // Skip if no Sufix available for this position in this Kantor
+                }
+                
+                $totalData['sufix_id'] = $sufixAtPosition->id;
+                
+                $hasData = false;
+                
+                // Only calculate from SubSufixes within this Kantor
+                foreach ($sufixes as $sufix) {
+                    $subSufixAtPosition = $sufix->subSufixes->skip($position)->first();
+                    
+                    if ($subSufixAtPosition) {
+                        $totalData['jumlah_alokasi_bnba'] += $subSufixAtPosition->alokasi ?? 0;
+                        $totalData['jumlah_alokasi_biaya'] += $subSufixAtPosition->alokasi_biaya ?? 0;
+                        $totalData['jumlah_realisasi'] += $subSufixAtPosition->realisasi ?? 0;
+                        $totalData['jumlah_realisasi_biaya'] += $subSufixAtPosition->realisasi_biaya ?? 0;
+                        $hasData = true;
+                    }
+                }
+                
+                if ($hasData) {
+                    $totalData['persentase'] = $totalData['jumlah_alokasi_bnba'] > 0 ? 
+                        ($totalData['jumlah_realisasi'] / $totalData['jumlah_alokasi_bnba']) * 100 : 0;
+                    
+                    $total = self::create($totalData);
+                    $totalsCreated[] = [
+                        'kantor' => $kantor->kantor,
+                        'kantor_id' => $kantor->id,
+                        'position' => $position + 1,
+                        'sufix_name' => $sufixAtPosition->nama_sufix,
+                        'total' => $total
+                    ];
+                }
             }
         }
         

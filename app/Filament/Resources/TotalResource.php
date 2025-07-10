@@ -66,12 +66,25 @@ class TotalResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->columns([
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['sufix.kantor']))
+            ->columns([
+            
                 TextColumn::make('id')
                     ->label('DATA')
-                    ->formatStateUsing(fn($record) => $record->sufix_id ? "Sufix: {$record->sufix->nama_sufix}" : "Data {$record->id}")
+                    ->formatStateUsing(function($record) {
+                        if ($record->sufix_id && $record->sufix) {
+                            $kantorName = $record->sufix->kantor ? $record->sufix->kantor->kantor : 'Unknown';
+                            return "Sufix: {$record->sufix->nama_sufix} ({$kantorName})";
+                        }
+                        return "Data {$record->id}";
+                    })
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('sufix.kantor.kantor')
+                    ->label('KANTOR')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('N/A'),
                 TextColumn::make('jumlah_alokasi_bnba')
                     ->label('JUMLAH ALOKASI BNBA')
                     ->formatStateUsing(fn($state) => number_format((float)$state, 0, ',', '.'))
@@ -99,7 +112,11 @@ class TotalResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('kantor')
+                    ->relationship('sufix.kantor', 'kantor')
+                    ->label('Filter by Kantor')
+                    ->placeholder('All Kantors')
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

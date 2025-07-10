@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\KantorExport; // Ini adalah Maatwebsite Export
 use App\Filament\Exports\AdvancedKantorExporter;
 use App\Filament\Exports\DetailedKantorExporter;
-use App\Filament\Exports\KantorExporter;
+use App\Filament\Exports\KantorExporter as FilamentKantorExporter; // Alias untuk menghindari konflik nama
 use App\Filament\Resources\KantorResource\Pages;
 use App\Filament\Resources\KantorResource\RelationManagers;
 use App\Imports\KantorDataImport;
-use App\Models\Kantor;
+use App\Models\Kantor; //
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -90,15 +91,16 @@ class KantorResource extends Resource
                 //
             ])
             ->headerActions([
-                ExportAction::make()
-                    ->label('Export Basic')
-                    ->exporter(KantorExporter::class),
-                // ExportAction::make()
-                //     ->label('Export Detailed')
-                //     ->exporter(DetailedKantorExporter::class),
-                // ExportAction::make()
-                //     ->label('Export Advanced')
-                //     ->exporter(AdvancedKantorExporter::class),
+                Action::make('export_all')
+                    ->label('Export Semua Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function () {
+                        return Excel::download(
+                            new KantorExport(),
+                            'data-semua-kantor-' . now()->format('YmdHis') . '.xlsx'
+                        );
+                    }),
                 Action::make('import')
                     ->label('Import from Excel/CSV')
                     ->form([
@@ -126,19 +128,27 @@ class KantorResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('Export Single')
+                    ->label('Export Data Ini')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (?Kantor $record) {
+                        if ($record === null) {
+                            Notification::make()
+                                ->title('Kesalahan Ekspor')
+                                ->body('Data kantor tidak ditemukan untuk diekspor.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                        return Excel::download(
+                            new KantorExport([$record->id]),
+                            'data-kantor-' . $record->kantor . '-' . now()->format('YmdHis') . '.xlsx'
+                        );
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ExportBulkAction::make()
-                        ->label('Export Basic')
-                        ->exporter(KantorExporter::class),
-                    // Tables\Actions\ExportBulkAction::make()
-                    //     ->label('Export Detailed')
-                    //     ->exporter(DetailedKantorExporter::class),
-                    // Tables\Actions\ExportBulkAction::make()
-                    //     ->label('Export Advanced')
-                    //     ->exporter(AdvancedKantorExporter::class)
                 ]),
             ]);
     }

@@ -62,6 +62,13 @@ class SufixesRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Action::make('Manage Sub Sufixes')
+                    ->url(fn ($record) => route('filament.admin.resources.sufixes.edit', [
+                        'record' => $record->id,
+                    ]) . '#sub-sufixes')
+                    ->icon('heroicon-o-list-bullet')
+                    ->label('Manage Sub Sufixes')
+                    ->color('success'),
                 Action::make('Manage Totals')
                     ->url(fn ($record) => route('filament.admin.resources.totals.index', [
                         'sufix' => $record->id,

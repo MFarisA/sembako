@@ -18,8 +18,8 @@ class ListKantor extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
-            Actions\ExportAction::make()
-                ->exporter(KantorExporter::class),
+            // Actions\ExportAction::make()
+            //     ->exporter(KantorExporter::class),
             ImportAction::make('import')
                     ->label('Import Kantor')
                     ->icon('heroicon-o-arrow-up-on-square')
