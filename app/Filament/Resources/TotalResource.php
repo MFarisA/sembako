@@ -69,7 +69,7 @@ class TotalResource extends Resource
                     ->formatStateUsing(function($record) {
                         if ($record->sufix_id && $record->sufix) {
                             $kantorName = $record->sufix->kantor ? $record->sufix->kantor->kantor : 'Unknown';
-                            return "Sufix: {$record->sufix->nama_sufix} ({$kantorName})";
+                            return "Total Kantor: {$kantorName}";
                         }
                         return "Data {$record->id}";
                     })

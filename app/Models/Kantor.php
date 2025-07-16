@@ -30,4 +30,20 @@ class Kantor extends Model
     {
         return $this->hasManyThrough(Total::class, Sufix::class);
     }
+
+    /**
+     * Get the single Total for this Kantor (should be attached to the first Sufix)
+     */
+    public function total()
+    {
+        return $this->totals()->first();
+    }
+
+    /**
+     * Get Total relationship for easier access
+     */
+    public function kantorTotal()
+    {
+        return $this->hasOneThrough(Total::class, Sufix::class);
+    }
 }

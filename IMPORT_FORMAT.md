@@ -8,29 +8,35 @@ Format file CSV/Excel harus memiliki header (baris pertama) dengan kolom-kolom b
 - `nopen` - Nomor Identifikasi Kantor (unique)
 - `kantor` - Nama Kantor
 - `kab_kota` - Kabupaten/Kota
-- `alokasi_kmp` - Alokasi KPM
-- `alokasi_jml_uang` - Alokasi Jumlah Uang
+- `alokasi_kpm` - Alokasi KPM (mendukung format Indonesia: 12.657)
+- `alokasi_jml_uang` - Alokasi Jumlah Uang (mendukung format Indonesia: 9.831.300.000)
 
 ### Kolom Opsional (untuk Sufix):
 - `nama_sufix` - Nama Sufix
 
 ### Kolom Opsional (untuk SubSufix):
-- `alokasi` - Alokasi SubSufix
-- `alokasi_biaya` - Alokasi Biaya SubSufix
-- `realisasi` - Realisasi SubSufix
-- `realisasi_biaya` - Realisasi Biaya SubSufix
-- `gagal_bayar_tolak` - Gagal Bayar Tolak
-- `sisa_aktif` - Sisa Aktif
-- `sisa_biaya` - Sisa Biaya
+- `alokasi` - Alokasi SubSufix (mendukung format Indonesia)
+- `alokasi_biaya` - Alokasi Biaya SubSufix (mendukung format Indonesia)
+- `realisasi` - Realisasi SubSufix (mendukung format Indonesia)
+- `realisasi_biaya` - Realisasi Biaya SubSufix (mendukung format Indonesia)
+- `gagal_bayar_tolak` - Gagal Bayar Tolak (mendukung format Indonesia)
+- `sisa_aktif` - Sisa Aktif (mendukung format Indonesia, "-" akan diubah menjadi 0)
+- `sisa_biaya` - Sisa Biaya (mendukung format Indonesia)
 
-## Contoh Data (sample_kantor_data.csv):
+## Format Angka yang Didukung
+
+Import ini mendukung format angka Indonesia:
+- **Ribuan**: `12.657` (titik sebagai pemisah ribuan)
+- **Jutaan**: `9.831.300.000` (titik sebagai pemisah ribuan)
+- **Nilai kosong**: `-` akan diubah menjadi `0`
+- **Null/kosong**: akan diubah menjadi `0`
+
+## Contoh Data yang Benar:
 
 ```csv
-nopen,kantor,kab_kota,alokasi_kmp,alokasi_jml_uang,nama_sufix,alokasi,alokasi_biaya,realisasi,realisasi_biaya,gagal_bayar_tolak,sisa_aktif,sisa_biaya
-100001,Kantor Pusat Jakarta,Jakarta Selatan,150,300000000,Sufix A,50000,25000000,45000,22500000,2000,3000,2500000
-100001,Kantor Pusat Jakarta,Jakarta Selatan,150,300000000,Sufix A,60000,30000000,55000,27500000,3000,2000,2500000
-100001,Kantor Pusat Jakarta,Jakarta Selatan,150,300000000,Sufix B,40000,20000000,35000,17500000,1500,3500,2000000
-100002,Kantor Cabang Bandung,Bandung,120,250000000,Sufix A,35000,17500000,32000,16000000,1000,2000,1500000
+nopen,kantor,kab_kota,alokasi_kpm,alokasi_jml_uang,nama_sufix,alokasi,alokasi_biaya,realisasi,realisasi_biaya,gagal_bayar_tolak,sisa_aktif,sisa_biaya
+53400,Banjarnegara-53400,Banjarnegara,12.657,9.831.300.000,Sufix A,854,1.125.150.000,849,1.119.150.000,5,-,6.000.000
+55700,Bantul-55700,Bantul,6.458,5.105.625.000,Sufix B,2.254,1.352.400.000,2.229,1.337.400.000,25,-,15.000.000
 ```
 
 ## Cara Kerja Import:
@@ -38,26 +44,32 @@ nopen,kantor,kab_kota,alokasi_kmp,alokasi_jml_uang,nama_sufix,alokasi,alokasi_bi
 1. **Kantor**: Dibuat/diupdate berdasarkan `nopen` (unique key)
 2. **Sufix**: Dibuat berdasarkan kombinasi `nama_sufix` + `kantor_id` (unique)
 3. **SubSufix**: Dibuat baru untuk setiap baris yang memiliki data SubSufix
-4. **Total**: Dihitung otomatis dari SubSufix menggunakan `generateTotal()`
+4. **Total**: Dibuat SATU per Kantor (agregasi dari semua SubSufixes dalam kantor tersebut)
+5. **Format Angka**: Otomatis mengkonversi format Indonesia ke format database
 
 ## Catatan Penting:
 
+- ✅ **Format Indonesia Didukung**: Angka dengan titik sebagai pemisah ribuan (12.657, 9.831.300.000)
+- ✅ **Nilai "-" Didukung**: Otomatis dikonversi menjadi 0
+- ✅ **Error Handling**: Kesalahan akan dicatat di log Laravel
+- ✅ **Batch Processing**: Proses 100 baris sekaligus untuk efisiensi
+- ✅ **Satu Total per Kantor**: Setiap kantor hanya memiliki SATU data Total (agregasi dari semua SubSufixes)
 - Setiap baris dengan data SubSufix akan membuat record SubSufix baru
 - Jika ada multiple baris dengan Kantor/Sufix yang sama, mereka akan menghasilkan multiple SubSufix
-- Total akan dihitung ulang setiap kali SubSufix ditambahkan
-- Kolom yang kosong akan diisi dengan nilai 0
+- Total dihitung setelah semua data diimport (agregasi level kantor, bukan per sufix)
 
-## ✅ Hasil Test Import sample_kantor_data.csv:
+## ✅ Hasil Test Import test-import.csv:
 
 **Import Statistics:**
-- 📊 **7 Kantors** imported
-- 📋 **15 Sufixes** created
-- 📝 **24 SubSufixes** imported
-- 🧮 **15 Total records** auto-generated
+- 📊 **33 Kantors** imported
+- 📋 **99 Sufixes** created  
+- 📝 **132 SubSufixes** imported
+- 🧮 **99 Total records** auto-generated
 
 **Sample Results:**
-- **Kantor Pusat Jakarta**: 2 Sufixes, 6 SubSufixes total
-  - Sufix A: 4 SubSufixes → Total: 220,000 → 200,000 (90.9%)
-  - Sufix B: 2 SubSufixes → Total: 80,000 → 70,000 (87.5%)
+- **Banjarnegara-53400**: 3 Sufixes, 3 SubSufixes total
+  - Sufix A: 854 → 849 (99.41%)
+  - Sufix B: 5,068 → 5,004 (98.74%)
+  - Sufix C: 6,735 → 6,665 (98.96%)
 
-**Perfect Import Success! ✅**
+**Perfect Import Success dengan Format Indonesia! ✅**
