@@ -21,28 +21,23 @@ class TotalsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('jumlah_alokasi_bnba')
                     ->label('JUMLAH ALOKASI BNBA')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 Forms\Components\TextInput::make('jumlah_alokasi_biaya')
                     ->label('JUMLAH ALOKASI BIAYA')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 Forms\Components\TextInput::make('jumlah_realisasi')
                     ->label('JUMLAH REALISASI')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 Forms\Components\TextInput::make('jumlah_realisasi_biaya')
                     ->label('JUMLAH REALISASI BIAYA')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 Forms\Components\TextInput::make('persentase')
                     ->label('PERSENTASE')
                     ->numeric()
-                    ->step(0.01)
-                    ->required(),
+                    ->step(0.01),
             ]);
     }
 

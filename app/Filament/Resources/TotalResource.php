@@ -32,28 +32,23 @@ class TotalResource extends Resource
             ->schema([
                 TextInput::make('jumlah_alokasi_bnba')
                     ->label('JUMLAH ALOKASI BNBA')
-                    ->numeric()
-                    ->required(),
+                    ->numeric(),
                 TextInput::make('jumlah_alokasi_biaya')
                     ->label('JUMLAH ALOKASI BIAYA')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 TextInput::make('jumlah_realisasi')
                     ->label('JUMLAH REALISASI')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 TextInput::make('jumlah_realisasi_biaya')
                     ->label('JUMLAH REALISASI BIAYA')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 TextInput::make('persentase')
                     ->label('PERSENTASE')
                     ->numeric()
-                    ->step(0.01)
-                    ->required(),
+                    ->step(0.01),
                 Select::make('sufix_id')
                     ->relationship('sufix', 'nama_sufix')
                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_sufix} - {$record->kantor->kantor}")

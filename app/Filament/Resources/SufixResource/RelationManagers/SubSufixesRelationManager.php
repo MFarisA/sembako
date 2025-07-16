@@ -19,8 +19,7 @@ class SubSufixesRelationManager extends RelationManager
                 Forms\Components\TextInput::make('alokasi')
                     ->label('ALOKASI')
                     ->numeric()
-                    ->step(1)
-                    ->required(),
+                    ->step(1),
                 Forms\Components\TextInput::make('alokasi_biaya')
                     ->label('ALOKASI BIAYA')
                     ->numeric()

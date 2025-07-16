@@ -38,19 +38,15 @@ class KantorResource extends Resource
                     ->maxLength(255),
                 TextInput::make('nopen')
                     ->label('Nopen')
-                    ->required()
                     ->numeric(),
                 TextInput::make('kab_kota')
                     ->label('Kabupaten/Kota')
-                    ->required()
                     ->maxLength(255),
                 TextInput::make('alokasi_kpm')
                     ->label('Alokasi KPM')
-                    ->required()
                     ->numeric(),
                 TextInput::make('alokasi_jml_uang')
                     ->label('Alokasi Jumlah Uang')
-                    ->required()
                     ->numeric()
                     ->step(1),
             ]);

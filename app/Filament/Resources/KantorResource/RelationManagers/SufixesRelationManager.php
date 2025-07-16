@@ -24,13 +24,11 @@ class SufixesRelationManager extends RelationManager
             ->schema([
                 TextInput::make('nama_sufix')
                     ->label('NAMA SUFIX')
-                    ->required()
                     ->maxLength(255),
                 Select::make('kantor_id')
                     ->label('KANTOR')
                     ->relationship('kantor', 'kantor')
                     ->searchable()
-                    ->required()
                     ->preload(),
             ]);
     }

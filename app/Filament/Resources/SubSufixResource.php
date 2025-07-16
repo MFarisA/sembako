@@ -23,8 +23,7 @@ class SubSufixResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('sufix_id')
-                    ->relationship('sufix', 'nama_sufix')
-                    ->required(),
+                    ->relationship('sufix', 'nama_sufix'),
                 Forms\Components\TextInput::make('alokasi')
                     ->numeric()
                     ->step(1),
