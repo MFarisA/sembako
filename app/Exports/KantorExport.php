@@ -47,13 +47,6 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
             'Kab/Kota',
             'Alokasi KPM Kantor',
             'Alokasi Jumlah Uang Kantor',
-            // 'Sufix ID',
-            'Nama Sufix',
-            'Total Jumlah Alokasi BNBA Sufix',
-            'Total Jumlah Alokasi Biaya Sufix',
-            'Total Jumlah Realisasi Sufix',
-            'Total Jumlah Realisasi Biaya Sufix',
-            'Total Persentase Sufix',
             // 'SubSufix ID',
             'SubSufix Alokasi',
             'SubSufix Alokasi Biaya',
@@ -62,6 +55,13 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
             'SubSufix Gagal Bayar Tolak',
             'SubSufix Sisa Aktif',
             'SubSufix Sisa Biaya',
+            // 'Sufix ID',
+            'Nama Sufix',
+            'Total Jumlah Alokasi BNBA Sufix',
+            'Total Jumlah Alokasi Biaya Sufix',
+            'Total Jumlah Realisasi Sufix',
+            'Total Jumlah Realisasi Biaya Sufix',
+            'Total Persentase Sufix',
         ];
     }
 
@@ -85,13 +85,6 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
                         $kantor->kab_kota,
                         $kantor->alokasi_kpm,
                         $kantor->alokasi_jml_uang,
-                        // $sufix->id,
-                        $sufix->nama_sufix,
-                        $sufix->total ? $sufix->total->jumlah_alokasi_bnba : null,
-                        $sufix->total ? $sufix->total->jumlah_alokasi_biaya : null,
-                        $sufix->total ? $sufix->total->jumlah_realisasi : null,
-                        $sufix->total ? $sufix->total->jumlah_realisasi_biaya : null,
-                        $sufix->total ? $sufix->total->persentase : null,
                         // $subSufix->id,
                         $subSufix->alokasi,
                         $subSufix->alokasi_biaya,
@@ -100,6 +93,13 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
                         $subSufix->gagal_bayar_tolak,
                         $subSufix->sisa_aktif,
                         $subSufix->sisa_biaya,
+                        // $sufix->id,
+                        $sufix->nama_sufix,
+                        $sufix->total ? $sufix->total->jumlah_alokasi_bnba : null,
+                        $sufix->total ? $sufix->total->jumlah_alokasi_biaya : null,
+                        $sufix->total ? $sufix->total->jumlah_realisasi : null,
+                        $sufix->total ? $sufix->total->jumlah_realisasi_biaya : null,
+                        $sufix->total ? $sufix->total->persentase : null,
                     ];
                 }
             } else {
@@ -111,6 +111,8 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
                     $kantor->kab_kota,
                     $kantor->alokasi_kpm,
                     $kantor->alokasi_jml_uang,
+                    // Kolom subSufix kosong
+                    null, null, null, null, null, null, null,
                     // $sufix->id,
                     $sufix->nama_sufix,
                     $sufix->total ? $sufix->total->jumlah_alokasi_bnba : null,
@@ -118,7 +120,6 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
                     $sufix->total ? $sufix->total->jumlah_realisasi : null,
                     $sufix->total ? $sufix->total->jumlah_realisasi_biaya : null,
                     $sufix->total ? $sufix->total->persentase : null,
-                    null, null, null, null, null, null, null, null, // Kolom subSufix kosong
                 ];
             }
         }
@@ -126,14 +127,16 @@ class KantorExport implements FromCollection, WithHeadings, WithMapping
         // Jika tidak ada sufix sama sekali untuk kantor ini
         if ($kantor->sufixes->isEmpty()) {
             $rows[] = [
-                $kantor->id,
+                // $kantor->id,
                 $kantor->kantor,
                 $kantor->nopen,
                 $kantor->kab_kota,
                 $kantor->alokasi_kpm,
                 $kantor->alokasi_jml_uang,
-                null, null, null, null, null, null, null, // Kolom sufix dan total kosong
-                null, null, null, null, null, null, null, null, // Kolom subSufix kosong
+                // Kolom subSufix kosong
+                null, null, null, null, null, null, null,
+                // Kolom sufix dan total kosong
+                null, null, null, null, null, null,
             ];
         }
 
