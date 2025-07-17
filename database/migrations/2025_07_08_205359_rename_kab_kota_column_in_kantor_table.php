@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kantor', function (Blueprint $table) {
-            $table->renameColumn('Kab/Kota', 'kab_kota');
-        });
+        // Schema::table('kantor', function (Blueprint $table) {
+        //     $table->renameColumn('Kab/Kota', 'kab_kota');
+        // });
     }
 
     /**

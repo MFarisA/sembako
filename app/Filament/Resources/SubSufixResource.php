@@ -8,6 +8,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class SubSufixResource extends Resource
@@ -51,10 +52,20 @@ class SubSufixResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with(['sufix.kantor']))
             ->columns([
+                TextColumn::make("sufix.kantor.kab_kota")
+                    ->searchable()
+                    ->sortable()
+                    ->label("Kab/Kota"),
+                TextColumn::make("sufix.kantor.kantor")
+                    ->searchable()
+                    ->sortable()
+                    ->label("Kantor"),
                 Tables\Columns\TextColumn::make('sufix.nama_sufix')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Nama Sufix'),
                 Tables\Columns\TextColumn::make('alokasi')
                     ->numeric()
                     ->sortable()

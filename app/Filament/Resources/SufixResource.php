@@ -45,6 +45,10 @@ class SufixResource extends Resource
                     ->label('KANTOR')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make("kantor.kab_kota")
+                    ->searchable()
+                    ->sortable()
+                    ->label("Kota"),
                 TextColumn::make('nama_sufix')
                     ->label('NAMA SUFIX')
                     ->searchable()

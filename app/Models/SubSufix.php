@@ -24,6 +24,11 @@ class SubSufix extends Model
         return $this->belongsTo(Sufix::class);
     }
 
+    public function kantor()
+    {
+        return $this->hasOneThrough(Kantor::class, Sufix::class, 'id', 'id', 'sufix_id', 'kantor_id');
+    }
+
     public function totals()
     {
         return $this->hasMany(Total::class);
