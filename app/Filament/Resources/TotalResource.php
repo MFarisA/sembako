@@ -51,7 +51,7 @@ class TotalResource extends Resource
                     ->step(0.01),
                 Select::make('sufix_id')
                     ->relationship('sufix', 'nama_sufix')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_sufix} - {$record->kantor->kantor}")
+                    ->getOptionLabelFromRecordUsing(fn($record) => "{$record->nama_sufix} - {$record->kantor->kantor}")
                     ->searchable()
                     ->nullable()
                     ->placeholder('Leave empty for positional total'),
@@ -61,12 +61,12 @@ class TotalResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['sufix.kantor']))
+            ->modifyQueryUsing(fn(Builder $query) => $query->with(['sufix.kantor']))
             ->columns([
-            
+
                 TextColumn::make('id')
                     ->label('DATA')
-                    ->formatStateUsing(function($record) {
+                    ->formatStateUsing(function ($record) {
                         if ($record->sufix_id && $record->sufix) {
                             $kantorName = $record->sufix->kantor ? $record->sufix->kantor->kantor : 'Unknown';
                             return "Total Kantor: {$kantorName}";
@@ -77,6 +77,11 @@ class TotalResource extends Resource
                     ->sortable(),
                 TextColumn::make('sufix.kantor.kantor')
                     ->label('KANTOR')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('N/A'),
+                TextColumn::make('sufix.kantor.kab_kota')
+                    ->label('kota')
                     ->searchable()
                     ->sortable()
                     ->placeholder('N/A'),
